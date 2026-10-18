@@ -31,29 +31,41 @@
   };
 
   // ---- 録音 ----
-  async function record(ms) {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false } });
-    const ac = new AudioContext();
+  // iOS Safari は、タップ直後にマイクと AudioContext を開始しないと音が取れないため、
+  // カウントダウン前に開いておき、1秒間だけチャンクを溜める
+  async function openMic() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ac = new AC();
+    await ac.resume();
     const src = ac.createMediaStreamSource(stream);
     const proc = ac.createScriptProcessor(4096, 1, 1);
-    const chunks = [];
-    proc.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-    src.connect(proc); proc.connect(ac.destination);
+    const mic = { stream, ac, src, proc, chunks: [], on: false };
+    proc.onaudioprocess = e => { if (mic.on) mic.chunks.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
+    const mute = ac.createGain(); mute.gain.value = 0;   // 自分の声がスピーカーから出ないように
+    src.connect(proc); proc.connect(mute); mute.connect(ac.destination);
+    return mic;
+  }
+
+  async function capture(mic, ms) {
+    mic.on = true;
     await new Promise(r => setTimeout(r, ms));
-    proc.disconnect(); src.disconnect();
-    stream.getTracks().forEach(t => t.stop());
-    const sr = ac.sampleRate; ac.close();
-    const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0));
-    let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; }
-    return C.analyzeSamples(all.subarray(0, Math.floor(sr * ms / 1000)), sr);
+    mic.on = false;
+    mic.proc.disconnect(); mic.src.disconnect();
+    mic.stream.getTracks().forEach(t => t.stop());
+    const sr = mic.ac.sampleRate; mic.ac.close();
+    const all = new Float32Array(mic.chunks.reduce((n, c) => n + c.length, 0));
+    let o = 0; for (const c of mic.chunks) { all.set(c, o); o += c.length; }
+    return C.analyzeSamples(all.subarray(0, Math.min(all.length, Math.floor(sr * ms / 1000))), sr);
   }
 
   async function onRecord() {
     $('btnRec').disabled = true; $('btnRandom').disabled = true;
     try {
+      const mic = await openMic();
       for (const n of [3, 2, 1]) { setStatus(`${n}…`); await new Promise(r => setTimeout(r, 700)); }
       setStatus('今だ、叫べ！！');
-      const spec = await record(1000);
+      const spec = await capture(mic, 1000);
       if (!spec) { setStatus('声が小さすぎる！もう一度。'); return enableButtons(); }
       startCareer(spec);
     } catch (e) {
