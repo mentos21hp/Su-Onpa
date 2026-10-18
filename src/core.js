@@ -269,14 +269,20 @@
   }
 
   // 番付: 1勝ごとに1段上がる（添字 = 連勝数）。10連勝で関取（十両）、20連勝で横綱、30連勝で伝説級。
-  // 横綱以降は勝つほどネタっぽくなる
+  // 横綱以降は勝つほどネタっぽくなる。30〜50勝は5連勝ごと、50〜100勝は10連勝ごとに新しい称号
   const RANKS = ['部屋入り', '前相撲', '序ノ口', '序二段', '三段目', '幕下 下位', '幕下 中位', '幕下 上位', '幕下筆頭',
     '十両 下位', '十両 上位', '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '大関 綱取り', '大関 横綱目前',
     '音波横綱', 'すごい横綱', 'スーパー横綱', 'ウルトラ横綱', 'ハイパー横綱', 'ミラクル横綱', '激ヤバ横綱', '大横綱', '超大横綱',
-    'ほぼ神の横綱', '伝説の音波大横綱'];
-  const YOKOZUNA_WINS = 20, LEGEND_WINS = RANKS.length - 1;
-  // 30連勝を超えたら、連勝数がそのまま見えるように「＋N」を付ける
-  const rankOf = wins => wins > LEGEND_WINS ? `${RANKS[LEGEND_WINS]} ＋${wins - LEGEND_WINS}` : RANKS[wins];
+    'ほぼ神の横綱'];
+  const MILESTONES = [[30, '伝説の音波大横綱'], [35, '神話の横綱'], [40, '神'], [45, '宇宙の横綱'], [50, '銀河系最強'],
+    [60, '時空を超えし者'], [70, '因果律の支配者'], [80, '音の化身'], [90, '音波そのもの'], [100, '音波の創造主']];
+  const YOKOZUNA_WINS = 20;
+  // 称号の間の連勝は、直前の称号に「＋N」を付けて連勝数が見えるようにする
+  function rankOf(wins) {
+    if (wins < MILESTONES[0][0]) return RANKS[wins];
+    const [m, name] = MILESTONES.filter(([n]) => n <= wins).pop();
+    return wins === m ? name : `${name} ＋${wins - m}`;
+  }
 
   root.OnpaCore = {
     N, W0, H0, FOOT_H, HALF, analyzeSamples, randomSpec, makeShikona, weightKg,

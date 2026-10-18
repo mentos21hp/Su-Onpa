@@ -1,0 +1,7 @@
+<!DOCTYPE html><meta charset="UTF-8"><pre id="out"></pre>
+<script src="../vendor/matter.min.js"></script><script src="../src/core.js"></script>
+<script>
+// 番付の一覧を出す: msedge --headless --dump-dom test/ranks.html
+const o = []; for (const n of [0, 9, 10, 19, 20, 21, 29, 30, 31, 34, 35, 44, 45, 49, 50, 59, 60, 99, 100, 101, 130]) o.push(n + ':' + OnpaCore.rankOf(n));
+document.getElementById('out').textContent = 'RANKS ' + o.join(' / ');
+</script>
