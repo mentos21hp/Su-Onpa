@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>sim</title>
+<pre id="out">running</pre>
+<script src="../vendor/matter.min.js"></script>
+<script src="../src/core.js"></script>
+<script>
+// 多数の対戦をヘッドレスで回し、決着率・決まり手・所要時間を集計する
+// 実行: msedge --headless --dump-dom test/sim.html
+let seed = 12345;
+const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+const C = OnpaCore;
+const stats = { n: 0, L: 0, R: 0, how: {}, kim: {}, times: [], timeouts: 0 };
+for (let i = 0; i < 60; i++) {
+  const a = C.randomSpec(rng, 0), b = C.randomSpec(rng, 0);
+  const bt = C.createBattle(a, b);
+  let steps = 0;
+  while (!bt.over && steps < 60 * 25) { bt.step(1); steps++; }
+  stats.n++;
+  if (!bt.over) { stats.timeouts++; continue; }
+  stats[bt.over.winner]++;
+  stats.how[bt.over.how] = (stats.how[bt.over.how] || 0) + 1;
+  stats.kim[bt.over.kimarite.name] = (stats.kim[bt.over.kimarite.name] || 0) + 1;
+  stats.times.push(+bt.time.toFixed(1));
+}
+const t = stats.times.sort((x, y) => x - y);
+stats.median = t[Math.floor(t.length / 2)]; stats.min = t[0]; stats.max = t[t.length - 1];
+delete stats.times;
+document.getElementById('out').textContent = 'RESULT ' + JSON.stringify(stats);
+</script>
