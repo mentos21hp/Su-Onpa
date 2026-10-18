@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音波相撲</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div><span id="rank">序ノ口</span> <span id="streak">0人抜き</span></div>
+    <div id="opp"></div>
+  </header>
+  <canvas id="stage" width="600" height="600"></canvas>
+  <footer>
+    <p id="status">マイクに向かって1秒、叫べ。</p>
+    <div class="row">
+      <button id="btnRec">録音開始</button>
+      <button id="btnRandom" class="sub">声が出せない → ランダム</button>
+    </div>
+  </footer>
+  <div id="result" hidden>
+    <img id="card" alt="結果カード">
+    <div class="row">
+      <button id="btnShare">共有</button>
+      <button id="btnSave" class="sub">画像を保存</button>
+      <button id="btnRetry" class="sub">もう一度</button>
+    </div>
+  </div>
+</div>
+<script src="vendor/matter.min.js"></script>
+<script src="src/core.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
