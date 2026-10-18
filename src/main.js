@@ -6,7 +6,8 @@
   const W = canvas.width, H = canvas.height;
   const SCALE = W / 720, GROUND = H * 0.78;
   const FONT = '"Yuji Syuku","Hiragino Mincho ProN","Yu Mincho",serif';
-  const GHOST_KEY = 'onpa-sumo-ghosts', YOKO_KEY = 'onpa-sumo-yokozuna';
+  const GHOST_KEY = 'onpa-sumo-ghosts', YOKO_KEY = 'onpa-sumo-yokozuna', PLAYED_KEY = 'onpa-sumo-played';
+  const REC_MS = 1000;
 
   const store = {
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
@@ -59,14 +60,27 @@
     return C.analyzeSamples(all.subarray(0, Math.min(all.length, Math.floor(sr * ms / 1000))), sr);
   }
 
+  // 録音中、残り時間を減っていくバーで見せる
+  function recordWithBar(mic) {
+    const bar = $('recbar'), fill = $('recfill');
+    bar.hidden = false;
+    fill.style.transition = 'none'; fill.style.width = '100%';
+    void fill.offsetWidth;                       // 初期値を確定させてからアニメーション開始
+    fill.style.transition = `width ${REC_MS}ms linear`; fill.style.width = '0%';
+    return capture(mic, REC_MS).finally(() => { bar.hidden = true; });
+  }
+
   async function onRecord() {
     Sfx.unlock();
     $('btnRec').disabled = true; $('btnRandom').disabled = true;
     try {
       const mic = await openMic();
-      for (const n of [3, 2, 1]) { setStatus(`${n}…`); Sfx.beep(); await new Promise(r => setTimeout(r, 700)); }
+      // 初回は 3・2・1 と数え、慣れた2回目以降は 1 だけにして素早く始める
+      const count = store.get(PLAYED_KEY, false) ? [1] : [3, 2, 1];
+      for (const n of count) { setStatus(`${n}…`); Sfx.beep(); await new Promise(r => setTimeout(r, 1000)); }
       setStatus('今だ、叫べ！！');
-      const spec = await capture(mic, 1000);
+      const spec = await recordWithBar(mic);
+      store.set(PLAYED_KEY, true);
       if (!spec) { setStatus('声が小さすぎる！もう一度。'); return enableButtons(); }
       startCareer(spec);
     } catch (e) {

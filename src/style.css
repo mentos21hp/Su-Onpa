@@ -9,6 +9,9 @@ canvas#stage { width: 100%; height: auto; display: block; border: 2px solid #6b4
 footer { text-align: center; }
 footer .note { font-size: .75rem; opacity: .7; margin: 12px 0 4px; }
 button.mute { background: none; padding: 2px 8px; font-size: 1.2rem; }
+#recbar { height: 14px; margin: 10px auto 0; max-width: 360px; background: #3a2a20; border-radius: 7px; overflow: hidden; border: 1px solid #6b4a2b; }
+#recbar[hidden] { display: none; }
+#recfill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff5252, #ffcf4d); }
 #status { min-height: 1.6em; margin: 10px 0; }
 .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 button { font: inherit; font-size: 1.1rem; padding: 10px 22px; border: 0; border-radius: 6px; background: #c62828; color: #fff; cursor: pointer; }

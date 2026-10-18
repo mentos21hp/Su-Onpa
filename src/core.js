@@ -259,7 +259,7 @@
     return env.map((v, i) => v * (1 - k) + k * (env[Math.max(0, i - 1)] + env[Math.min(N - 1, i + 1)]) / 2);
   }
 
-  const RANKS = [[10, '横綱'], [8, '大関'], [5, '関脇'], [3, '十両'], [1, '幕下'], [0, '序ノ口']];
+  const RANKS = [[10, '横綱'], [8, '大関'], [7, '関脇'], [6, '小結'], [5, '前頭'], [4, '十両'], [3, '幕下'], [2, '三段目'], [1, '序二段'], [0, '序ノ口']];
   const rankOf = wins => RANKS.find(([n]) => wins >= n)[1];
 
   root.OnpaCore = {
