@@ -60,10 +60,11 @@
   }
 
   async function onRecord() {
+    Sfx.unlock();
     $('btnRec').disabled = true; $('btnRandom').disabled = true;
     try {
       const mic = await openMic();
-      for (const n of [3, 2, 1]) { setStatus(`${n}…`); await new Promise(r => setTimeout(r, 700)); }
+      for (const n of [3, 2, 1]) { setStatus(`${n}…`); Sfx.beep(); await new Promise(r => setTimeout(r, 700)); }
       setStatus('今だ、叫べ！！');
       const spec = await capture(mic, 1000);
       if (!spec) { setStatus('声が小さすぎる！もう一度。'); return enableButtons(); }
@@ -99,6 +100,7 @@
     const specL = { ...me, env: myEnv };
     g = { enemy, battle: C.createBattle(specL, enemy, { scaleL: wear.scale, pushL: wear.push }), decided: 0 };
     phase = 'intro'; phaseT = 0;
+    Sfx.drum(); Sfx.drum(0.35);              // 土俵入りの太鼓
     setHud();
     setStatus(`${enemy.shikona}（${C.weightKg(enemy)}kg）が土俵入り`);
   }
@@ -107,6 +109,7 @@
     lastKimarite = res.kimarite.name;
     g.decided = 0;
     shake = 14;
+    Sfx.clack(); (res.winner === 'L' ? Sfx.win : Sfx.lose)();
     if (res.winner === 'L') for (let i = 0; i < 60; i++) {
       confetti.push({ x: W / 2, y: H * 0.3, vx: (Math.random() - .5) * 8, vy: -Math.random() * 6 - 2, c: `hsl(${Math.random() * 360},80%,60%)`, t: 0 });
     }
@@ -264,12 +267,13 @@
 
     if (phase === 'naming' && phaseT > 2.4) startBout();
     else if (phase === 'intro') {
-      if (phaseT > 2.2) { phase = 'fight'; phaseT = 0; setStatus('のこった、のこった！'); }
+      if (phaseT > 1.2 && !g.hakkeyoi) { g.hakkeyoi = true; Sfx.clack(); }
+      if (phaseT > 2.2) { phase = 'fight'; phaseT = 0; Sfx.drum(); setStatus('のこった、のこった！'); }
     } else if (phase === 'fight') {
       const b = g.battle;
       if (!b.over) {
         b.step(1);
-        if (b.impact) shake = Math.max(shake, 6);
+        if (b.impact) { shake = Math.max(shake, 6); Sfx.thud(); }
         if (b.over) onDecided(b.over);
       } else {
         g.decided += dt;
@@ -288,7 +292,11 @@
   }
 
   $('btnRec').onclick = onRecord;
-  $('btnRandom').onclick = () => startCareer(C.randomSpec(Math.random, 0));
+  $('btnRandom').onclick = () => { Sfx.unlock(); startCareer(C.randomSpec(Math.random, 0)); };
+  const muteBtn = $('btnMute');
+  const showMute = () => { muteBtn.textContent = Sfx.isMuted() ? '🔇' : '🔊'; };
+  muteBtn.onclick = () => { Sfx.unlock(); Sfx.setMuted(!Sfx.isMuted()); showMute(); };
+  showMute();
   $('btnShare').onclick = onShare;
   $('btnSave').onclick = onSave;
   $('btnRetry').onclick = () => {
