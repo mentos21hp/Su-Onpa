@@ -26,7 +26,7 @@
 
   const setStatus = t => { $('status').textContent = t; };
   const setHud = () => {
-    $('rank').textContent = streak >= 10 ? `第${store.get(YOKO_KEY, 0) + 1}代 音波横綱` : C.rankOf(streak);
+    $('rank').textContent = streak >= C.YOKOZUNA_WINS ? `第${store.get(YOKO_KEY, 0) + 1}代 音波横綱` : C.rankOf(streak);
     $('streak').textContent = `${streak}人抜き`;
     $('opp').textContent = g ? `対 ${g.enemy.shikona}` : (me ? me.shikona : '');
   };
@@ -149,7 +149,7 @@
     ghosts.push({ shikona: me.shikona, env: me.env, loud: me.loud, peak: me.peak, spread: me.spread, win_streak: streak });
     store.set(GHOST_KEY, ghosts.slice(-30));
     let title = C.rankOf(streak);
-    if (streak >= 10) {
+    if (streak >= C.YOKOZUNA_WINS) {
       const n = store.get(YOKO_KEY, 0) + 1; store.set(YOKO_KEY, n);
       title = `第${n}代 音波横綱`;
     }

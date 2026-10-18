@@ -259,11 +259,14 @@
     return env.map((v, i) => v * (1 - k) + k * (env[Math.max(0, i - 1)] + env[Math.min(N - 1, i + 1)]) / 2);
   }
 
-  const RANKS = [[10, '横綱'], [8, '大関'], [7, '関脇'], [6, '小結'], [5, '前頭'], [4, '十両'], [3, '幕下'], [2, '三段目'], [1, '序二段'], [0, '序ノ口']];
-  const rankOf = wins => RANKS.find(([n]) => wins >= n)[1];
+  // 実際の番付の並び。1勝するごとに1段上がる（添字 = 連勝数）
+  const RANKS = ['序ノ口', '序二段', '三段目', '幕下 下位', '幕下 上位', '十両 下位', '十両 上位',
+    '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '横綱'];
+  const YOKOZUNA_WINS = RANKS.length - 1;
+  const rankOf = wins => RANKS[Math.min(wins, YOKOZUNA_WINS)];
 
   root.OnpaCore = {
     N, W0, H0, FOOT_H, HALF, analyzeSamples, randomSpec, makeShikona, weightKg,
-    createBattle, smoothEnv, rankOf,
+    createBattle, smoothEnv, rankOf, YOKOZUNA_WINS,
   };
 })(globalThis);
