@@ -7,7 +7,7 @@
   const SCALE = W / 720, GROUND = H * 0.78;
   const FONT = '"Yuji Syuku","Hiragino Mincho ProN","Yu Mincho",serif';
   const GHOST_KEY = 'onpa-sumo-ghosts', YOKO_KEY = 'onpa-sumo-yokozuna', PLAYED_KEY = 'onpa-sumo-played';
-  const REC_MS = 1000;
+  const REC_MS = 2000;
 
   const store = {
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
@@ -36,7 +36,7 @@
 
   // ---- 録音 ----
   // iOS Safari は、タップ直後にマイクと AudioContext を開始しないと音が取れないため、
-  // カウントダウン前に開いておき、1秒間だけチャンクを溜める
+  // カウントダウン前に開いておき、録音時間（REC_MS）の間だけチャンクを溜める
   async function openMic() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -315,7 +315,7 @@
   $('btnSave').onclick = onSave;
   $('btnRetry').onclick = () => {
     $('result').hidden = true; g = null; phase = 'title'; me = null; streak = 0;
-    setHud(); enableButtons(); setStatus('マイクに向かって1秒、叫べ。');
+    setHud(); enableButtons(); setStatus('マイクに向かって2秒、叫べ。');
   };
 
   setHud();
