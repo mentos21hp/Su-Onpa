@@ -123,13 +123,22 @@
     const mean = env.reduce((a, b) => a + b, 0) / N;
     const spec = {
       env,
-      loud: clamp(0.25 + 0.05 * streak + rng() * 0.5, 0.15, 1),
+      loud: clamp(0.25 + BALANCE.enemyLoud * streak + rng() * 0.5, 0.15, 1),
       peak: 100 + rng() * 1400,
       spread: Math.sqrt(env.reduce((a, v) => a + (v - mean) ** 2, 0) / N),
     };
     spec.shikona = makeShikona(spec, rng);
     return spec;
   }
+
+  // 連勝バランス: 勝つほど相手が少しずつ手強くなり、自分は少しずつ疲れる
+  const BALANCE = {
+    enemyLoud: 0.01,                              // 連勝ごとの相手の重さの増加
+    enemyPush: s => 0.74 + 0.009 * s,               // 相手の推進力（1.0 が自分と同等）
+    push: 0.996,                                   // 1勝ごとの自分の推進力
+    scale: 0.995,                                 // 1勝ごとの突起の縮み
+    smooth: 0.01,                                 // 1勝ごとの波形のなだらか化
+  };
 
   const weightKg = spec => Math.round(80 + spec.loud * 120);
 
@@ -183,7 +192,7 @@
     const battle = { engine, L, R, time: 0, over: null, lastContact: -9, impact: 0, contact: false };
     // 推進力: 床との摩擦(質量比例)に勝てるよう質量に比例させる。重いほど絶対値は大きい
     // 長引いたら両者の力が徐々に増して決着を促す
-    const pushOf = r => (0.015 + 0.0033 * r.mass) * (r === L ? (opts.pushL ?? 1) : 1) * (1 + 0.6 * Math.max(0, battle.time - 2));
+    const pushOf = r => (0.015 + 0.0033 * r.mass) * (r === L ? (opts.pushL ?? 1) : (opts.pushR ?? 1)) * (1 + 0.6 * Math.max(0, battle.time - 2));
 
     Events.on(engine, 'collisionActive', e => {
       for (const p of e.pairs) {
@@ -259,14 +268,17 @@
     return env.map((v, i) => v * (1 - k) + k * (env[Math.max(0, i - 1)] + env[Math.min(N - 1, i + 1)]) / 2);
   }
 
-  // 実際の番付の並び。1勝するごとに1段上がる（添字 = 連勝数）
-  const RANKS = ['序ノ口', '序二段', '三段目', '幕下 下位', '幕下 上位', '十両 下位', '十両 上位',
-    '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '横綱'];
-  const YOKOZUNA_WINS = RANKS.length - 1;
-  const rankOf = wins => RANKS[Math.min(wins, YOKOZUNA_WINS)];
+  // 番付: 1勝ごとに1段上がる（添字 = 連勝数）。10連勝で関取（十両）、20連勝で横綱、30連勝で伝説級
+  const RANKS = ['部屋入り', '前相撲', '序ノ口', '序二段', '三段目', '幕下 下位', '幕下 中位', '幕下 上位', '幕下筆頭',
+    '十両 下位', '十両 上位', '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '大関 綱取り', '大関 横綱目前'];
+  const YOKOZUNA_WINS = 20, DAI_YOKOZUNA_WINS = 25, LEGEND_WINS = 30;
+  // 横綱以上は「第◯代」を付けるため、呼び出し側で組み立てる
+  const rankOf = wins =>
+    wins >= LEGEND_WINS ? '伝説の音波大横綱' : wins >= DAI_YOKOZUNA_WINS ? '音波大横綱'
+    : wins >= YOKOZUNA_WINS ? '音波横綱' : RANKS[wins];
 
   root.OnpaCore = {
     N, W0, H0, FOOT_H, HALF, analyzeSamples, randomSpec, makeShikona, weightKg,
-    createBattle, smoothEnv, rankOf, YOKOZUNA_WINS,
+    createBattle, smoothEnv, rankOf, YOKOZUNA_WINS, DAI_YOKOZUNA_WINS, BALANCE,
   };
 })(globalThis);

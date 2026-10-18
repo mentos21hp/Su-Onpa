@@ -24,9 +24,12 @@
   let shake = 0, confetti = [];
   let lastNow = performance.now();
 
+  // 横綱（20〜24勝）だけ「第◯代」を付ける
+  const titleOf = wins =>
+    wins >= C.YOKOZUNA_WINS && wins < C.DAI_YOKOZUNA_WINS ? `第${store.get(YOKO_KEY, 0) + 1}代 ${C.rankOf(wins)}` : C.rankOf(wins);
   const setStatus = t => { $('status').textContent = t; };
   const setHud = () => {
-    $('rank').textContent = streak >= C.YOKOZUNA_WINS ? `第${store.get(YOKO_KEY, 0) + 1}代 音波横綱` : C.rankOf(streak);
+    $('rank').textContent = titleOf(streak);
     $('streak').textContent = `${streak}人抜き`;
     $('opp').textContent = g ? `対 ${g.enemy.shikona}` : (me ? me.shikona : '');
   };
@@ -112,7 +115,7 @@
   function startBout() {
     const enemy = pickEnemy();
     const specL = { ...me, env: myEnv };
-    g = { enemy, battle: C.createBattle(specL, enemy, { scaleL: wear.scale, pushL: wear.push }), decided: 0 };
+    g = { enemy, battle: C.createBattle(specL, enemy, { scaleL: wear.scale, pushL: wear.push, pushR: C.BALANCE.enemyPush(streak) }), decided: 0 };
     phase = 'intro'; phaseT = 0;
     Sfx.drum(); Sfx.drum(0.35);              // 土俵入りの太鼓
     setHud();
@@ -133,9 +136,9 @@
     const res = g.battle.over;
     if (res.winner === 'L') {
       streak++;
-      wear.scale *= 0.97;                 // 突起が丸くなる
-      wear.push *= 0.95;                  // 疲労で推進力ダウン
-      myEnv = C.smoothEnv(myEnv, 0.06);
+      wear.scale *= C.BALANCE.scale;      // 突起が丸くなる
+      wear.push *= C.BALANCE.push;        // 疲労で推進力ダウン
+      myEnv = C.smoothEnv(myEnv, C.BALANCE.smooth);
       startBout();
     } else {
       finish();
@@ -148,11 +151,8 @@
     const ghosts = store.get(GHOST_KEY, []);
     ghosts.push({ shikona: me.shikona, env: me.env, loud: me.loud, peak: me.peak, spread: me.spread, win_streak: streak });
     store.set(GHOST_KEY, ghosts.slice(-30));
-    let title = C.rankOf(streak);
-    if (streak >= C.YOKOZUNA_WINS) {
-      const n = store.get(YOKO_KEY, 0) + 1; store.set(YOKO_KEY, n);
-      title = `第${n}代 音波横綱`;
-    }
+    const title = titleOf(streak);
+    if (streak >= C.YOKOZUNA_WINS) store.set(YOKO_KEY, store.get(YOKO_KEY, 0) + 1);
     $('card').src = makeCard(title).toDataURL('image/png');
     $('result').hidden = false;
     setStatus('');
@@ -175,7 +175,7 @@
     c.strokeStyle = '#8b1a1a'; c.lineWidth = 8; c.strokeRect(14, 14, 572, 772);
     c.textAlign = 'center'; c.fillStyle = '#222';
     c.font = `bold 40px ${FONT}`; c.fillText('音波相撲 番付', 300, 90);
-    c.fillStyle = '#8b1a1a'; c.font = `bold 84px ${FONT}`; c.fillText(title, 300, 210);
+    c.fillStyle = '#8b1a1a'; c.font = `bold ${Math.min(84, Math.floor(520 / title.length))}px ${FONT}`; c.fillText(title, 300, 210);
     c.fillStyle = '#222'; c.font = `bold 56px ${FONT}`; c.fillText(me.shikona, 300, 300);
     silhouette(c, me.env, 190, 360, 200, '#222');
     c.font = `bold 64px ${FONT}`; c.fillStyle = '#c62828'; c.fillText(`${streak}人抜き`, 300, 640);

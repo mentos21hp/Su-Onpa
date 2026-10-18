@@ -1,0 +1,26 @@
+<!DOCTYPE html><meta charset="UTF-8"><pre id="out">running</pre>
+<script src="../vendor/matter.min.js"></script><script src="../src/core.js"></script>
+<script>
+// 連勝数の分布を見る: 乱数の力士で「負けるまで」を多数回シミュレートする
+// msedge --headless --allow-file-access-from-files --virtual-time-budget=200000 --dump-dom test/career.html
+let seed = 99; const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+const C = OnpaCore, B = C.BALANCE, CAREERS = 300, CAP = 40;
+const streaks = [];
+for (let c = 0; c < CAREERS; c++) {
+  const me = C.randomSpec(rng, 0);
+  let env = me.env.slice(), wear = { scale: 1, push: 1 }, s = 0;
+  while (s < CAP) {
+    const enemy = C.randomSpec(rng, s);
+    const b = C.createBattle({ ...me, env }, enemy, { scaleL: wear.scale, pushL: wear.push, pushR: B.enemyPush(s) });
+    let n = 0; while (!b.over && n++ < 60 * 25) b.step(1);
+    if (!b.over || b.over.winner !== 'L') break;
+    s++; wear.scale *= B.scale; wear.push *= B.push; env = C.smoothEnv(env, B.smooth);
+  }
+  streaks.push(s);
+}
+streaks.sort((a, b) => a - b);
+const at = n => (100 * streaks.filter(x => x >= n).length / CAREERS).toFixed(1) + '%';
+document.getElementById('out').textContent = 'CAREER ' + JSON.stringify({
+  median: streaks[CAREERS >> 1], mean: +(streaks.reduce((a, b) => a + b) / CAREERS).toFixed(1),
+  ge3: at(3), ge5: at(5), ge10: at(10), ge15: at(15), ge20: at(20), ge30: at(30), max: streaks[CAREERS - 1] });
+</script>
