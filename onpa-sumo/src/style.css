@@ -7,6 +7,7 @@ header { display: flex; justify-content: space-between; align-items: baseline; p
 #opp { opacity: .85; }
 canvas#stage { width: 100%; height: auto; display: block; border: 2px solid #6b4a2b; touch-action: manipulation; }
 footer { text-align: center; }
+footer .note { font-size: .75rem; opacity: .7; margin: 12px 0 4px; }
 #status { min-height: 1.6em; margin: 10px 0; }
 .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 button { font: inherit; font-size: 1.1rem; padding: 10px 22px; border: 0; border-radius: 6px; background: #c62828; color: #fff; cursor: pointer; }
