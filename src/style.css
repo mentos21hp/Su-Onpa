@@ -1,5 +1,0 @@
-body { margin: 0; background: #1b3a1b; color: #fff; font-family: sans-serif; text-align: center; }
-h1 { margin: 12px 0 4px; font-size: 1.4rem; }
-canvas { background: #2e7d32; border: 2px solid #fff; max-width: 100%; touch-action: manipulation; }
-#hud { font-size: 1.1rem; margin: 8px 0 0; }
-.help { font-size: .85rem; opacity: .8; }
