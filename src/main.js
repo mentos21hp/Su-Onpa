@@ -24,9 +24,9 @@
   let shake = 0, confetti = [];
   let lastNow = performance.now();
 
-  // 横綱（20〜24勝）だけ「第◯代」を付ける
+  // 横綱になった瞬間（20勝）だけ「第◯代」を付ける
   const titleOf = wins =>
-    wins >= C.YOKOZUNA_WINS && wins < C.DAI_YOKOZUNA_WINS ? `第${store.get(YOKO_KEY, 0) + 1}代 ${C.rankOf(wins)}` : C.rankOf(wins);
+    wins === C.YOKOZUNA_WINS ? `第${store.get(YOKO_KEY, 0) + 1}代 ${C.rankOf(wins)}` : C.rankOf(wins);
   const setStatus = t => { $('status').textContent = t; };
   const setHud = () => {
     $('rank').textContent = titleOf(streak);

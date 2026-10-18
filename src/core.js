@@ -268,17 +268,18 @@
     return env.map((v, i) => v * (1 - k) + k * (env[Math.max(0, i - 1)] + env[Math.min(N - 1, i + 1)]) / 2);
   }
 
-  // 番付: 1勝ごとに1段上がる（添字 = 連勝数）。10連勝で関取（十両）、20連勝で横綱、30連勝で伝説級
+  // 番付: 1勝ごとに1段上がる（添字 = 連勝数）。10連勝で関取（十両）、20連勝で横綱、30連勝で伝説級。
+  // 横綱以降は勝つほどネタっぽくなる
   const RANKS = ['部屋入り', '前相撲', '序ノ口', '序二段', '三段目', '幕下 下位', '幕下 中位', '幕下 上位', '幕下筆頭',
-    '十両 下位', '十両 上位', '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '大関 綱取り', '大関 横綱目前'];
-  const YOKOZUNA_WINS = 20, DAI_YOKOZUNA_WINS = 25, LEGEND_WINS = 30;
-  // 横綱以上は「第◯代」を付けるため、呼び出し側で組み立てる
-  const rankOf = wins =>
-    wins >= LEGEND_WINS ? '伝説の音波大横綱' : wins >= DAI_YOKOZUNA_WINS ? '音波大横綱'
-    : wins >= YOKOZUNA_WINS ? '音波横綱' : RANKS[wins];
+    '十両 下位', '十両 上位', '前頭 下位', '前頭 中位', '前頭 上位', '前頭筆頭', '小結', '関脇', '大関', '大関 綱取り', '大関 横綱目前',
+    '音波横綱', 'すごい横綱', 'スーパー横綱', 'ウルトラ横綱', 'ハイパー横綱', 'ミラクル横綱', '激ヤバ横綱', '大横綱', '超大横綱',
+    'ほぼ神の横綱', '伝説の音波大横綱'];
+  const YOKOZUNA_WINS = 20, LEGEND_WINS = RANKS.length - 1;
+  // 30連勝を超えたら、連勝数がそのまま見えるように「＋N」を付ける
+  const rankOf = wins => wins > LEGEND_WINS ? `${RANKS[LEGEND_WINS]} ＋${wins - LEGEND_WINS}` : RANKS[wins];
 
   root.OnpaCore = {
     N, W0, H0, FOOT_H, HALF, analyzeSamples, randomSpec, makeShikona, weightKg,
-    createBattle, smoothEnv, rankOf, YOKOZUNA_WINS, DAI_YOKOZUNA_WINS, BALANCE,
+    createBattle, smoothEnv, rankOf, YOKOZUNA_WINS, BALANCE,
   };
 })(globalThis);
