@@ -69,19 +69,44 @@
 
   // ---------- 四股名 ----------
 
+  // 前半: 声の「形」で決まる。真面目な力士名と、笑える名前を混ぜる
   const PRE = {
-    loudLow: ['轟', '巌', '金剛'],
-    loudHigh: ['絶叫', '雷電', '紫電'],
-    softLow: ['ささやき', '微風', '深海'],
-    wild: ['乱れ', '怒涛', '渦潮'],
+    loudLow: ['轟', '巌', '金剛', 'ドスドス', 'ずっしり', 'ゴリゴリ'],
+    loudHigh: ['絶叫', '雷電', '紫電', 'キーキー', 'ぴえん', 'ギャー'],
+    softLow: ['ささやき', '微風', '深海', 'こそこそ', 'ひっそり', 'ぬるぬる'],
+    softHigh: ['ひそひそ', 'ちゅんちゅん', 'ふわふわ', 'ぷるぷる'],
+    wild: ['乱れ', '怒涛', '渦潮', 'ぐにゃぐにゃ', '情緒不安定', 'ジェットコースター'],
+    stutter: ['がやがや', 'ブルブル', 'ガタガタ', 'ビビり', 'どもり'],
+    fading: ['しょんぼり', '尻すぼみ', '燃え尽き', '三日坊主'],
+    late: ['寝起き', '出遅れ', 'エンジン音', '助走つき'],
+    oneshot: ['一発屋', '瞬間最大', '打ち上げ花火'],
   };
   const POST = ['山', '海', '富士', '川', '丸', '錦', '龍', '嵐'];
+  const POST_FUNNY = ['大福', '猫', 'うどん', 'ペンギン', 'だんご', 'もち', 'ぽん', 'ぴよ', 'カレー', 'ぬこ'];
+  // まれに出る特別な名前（スクショ用）
+  const RARE = ['ただのおじさん', '朝まで生ハム', '腹ペコ大関', '二度寝の達人', '猫まっしぐら', '月曜日の憂鬱', '給料日前'];
+
+  // 声の形: 立ち上がり・尻すぼみ・山の数
+  function shapeOf(env) {
+    const avg = (a, b) => env.slice(a, b).reduce((x, y) => x + y, 0) / (b - a);
+    const early = avg(0, 8), late = avg(16, 24);
+    let peaks = 0;
+    for (let i = 1; i < env.length - 1; i++) if (env[i] > 0.6 && env[i] > env[i - 1] && env[i] >= env[i + 1]) peaks++;
+    return { early, late, peaks };
+  }
 
   function makeShikona(spec, rng) {
+    if (rng() < 0.04) return pick(rng, RARE);
     const high = spec.peak > 400, loud = spec.loud > 0.45;
-    let group = spec.spread > 0.3 ? PRE.wild
-      : loud ? (high ? PRE.loudHigh : PRE.loudLow) : PRE.softLow;
-    return pick(rng, group) + pick(rng, POST);
+    const { early, late, peaks } = shapeOf(spec.env);
+    const group = peaks >= 6 ? PRE.stutter
+      : spec.spread > 0.3 ? PRE.wild
+      : late < early * 0.5 ? PRE.fading
+      : early < late * 0.5 ? PRE.late
+      : peaks === 1 ? PRE.oneshot
+      : loud ? (high ? PRE.loudHigh : PRE.loudLow)
+      : (high ? PRE.softHigh : PRE.softLow);
+    return pick(rng, group) + pick(rng, rng() < 0.3 ? POST_FUNNY : POST);
   }
 
   // 対戦相手（過去プレイヤーの代役）をランダム生成。連勝数が増えるほど手強くなる

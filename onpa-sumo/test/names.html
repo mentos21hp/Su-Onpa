@@ -1,0 +1,8 @@
+<!DOCTYPE html><meta charset="UTF-8"><pre id="out"></pre>
+<script src="../vendor/matter.min.js"></script><script src="../src/core.js"></script>
+<script>
+// 四股名のサンプルを出す: msedge --headless --dump-dom test/names.html
+let seed = 7; const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+const names = []; for (let i = 0; i < 40; i++) names.push(OnpaCore.randomSpec(rng, 0).shikona);
+document.getElementById('out').textContent = 'NAMES ' + names.join(' ');
+</script>
